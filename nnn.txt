@@ -1,0 +1,293 @@
+<template>
+  <div>
+    <div v-for="(control,index) in controlData" :key="index">
+      <div
+        :class="[control.isActivate?'mainDiv':'mainDiv1']"
+        :style="{width:control.width,  height: control.height, left:control.left,top: control.top}"
+        :ref="index"
+        @mousedown.stop="control.isActivate?handleMainDiv($event,index):null"
+      >
+        <div
+          :class="[control.isActivate?'handle handle-tl':null]"
+          @mousedown.stop="handleMouseDown($event,'nw',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-tr':null]"
+          @mousedown.stop="handleMouseDown($event,'ne',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-tm':null]"
+          @mousedown.stop="handleMouseDown($event,'n-resize',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-ml':null]"
+          @mousedown.stop="handleMouseDown($event,'w-resize',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-mr':null]"
+          @mousedown.stop="handleMouseDown($event,'e-resize',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-bl':null]"
+          @mousedown.stop="handleMouseDown($event,'sw',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-br':null]"
+          @mousedown.stop="handleMouseDown($event,'se',index)"
+        ></div>
+        <div
+          :class="[control.isActivate?'handle handle-bm':null]"
+          @mousedown.stop="handleMouseDown($event,'s-resize',index)"
+        ></div>
+        <label class="label-style" :style="control" for @click.self="labelClick(index)">bbbbb</label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { Component, Vue, Prop } from "vue-property-decorator";
+@Component({
+  components: {}
+})
+export default class ResizeDiv extends Vue {
+  positions: any = {
+    clientX: "",
+    clientY: "",
+    movementX: 0,
+    movementY: 0
+  };
+  controlData = [
+    {
+      width: "100px",
+      height: "100px",
+      left: "100px",
+      top: "100px",
+      isActivate:false
+    },
+    {
+      width: "120px",
+      height: "100px",
+      left: "200px",
+      top: "250px",
+      isActivate:false
+    }
+  ];
+
+  resizeDiv = "";
+  refName = "maindivRef";
+  isActivate = false;
+  trackinIndex = -1;
+  labelClick(control: any) {
+    console.log("clicked");
+     this.trackinIndex = control;
+    this.controlData[this.trackinIndex].isActivate = !this.controlData[this.trackinIndex].isActivate;
+  }
+
+  handleMainDiv(event: any, control: any) {
+    this.trackinIndex = control;
+    this.refName = control;
+    this.positions.clientX = event.clientX;
+    this.positions.clientY = event.clientY;
+    document.onmousemove = this.controlDrag;
+    document.onmouseup = this.closeDragElement;
+  }
+
+  controlDrag(event: any): void {
+    event.preventDefault();
+    this.positions.movementX = this.positions.clientX - event.clientX;
+    this.positions.movementY = this.positions.clientY - event.clientY;
+    this.positions.clientX = event.clientX;
+    this.positions.clientY = event.clientY;
+
+    this.controlData[this.trackinIndex].top =
+      (this as any).$refs[this.refName][0].offsetTop -
+      this.positions.movementY +
+      "px";
+    this.controlData[this.trackinIndex].left =
+      (this as any).$refs[this.refName][0].offsetLeft -
+      this.positions.movementX +
+      "px";
+  }
+  handleMouseDown(event: any, handler: string, control: any) {
+    this.resizeDiv = handler;
+    this.trackinIndex = control;
+    this.refName = control;
+    this.positions.clientX = event.clientX;
+    this.positions.clientY = event.clientY;
+    document.onmousemove = this.elementDrag;
+    document.onmouseup = this.closeDragElement;
+  }
+  elementDrag(event: any): void {
+    event.preventDefault();
+    this.positions.movementX = this.positions.clientX - event.clientX;
+    this.positions.movementY = this.positions.clientY - event.clientY;
+    this.positions.clientX = event.clientX;
+    this.positions.clientY = event.clientY;
+    console.log("resize the view", this.$refs /* [this.refName] */);
+    if (this.resizeDiv === "nw") {
+      this.controlData[this.trackinIndex].top =
+        (this as any).$refs[this.refName][0].offsetTop -
+        this.positions.movementY +
+        "px";
+      this.controlData[this.trackinIndex].left =
+        (this as any).$refs[this.refName][0].offsetLeft -
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) +
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) +
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "ne") {
+      this.controlData[this.trackinIndex].top =
+        (this as any).$refs[this.refName][0].offsetTop -
+        this.positions.movementY +
+        "px";
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) -
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) +
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "se") {
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) -
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) -
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "sw") {
+      this.controlData[this.trackinIndex].left =
+        (this as any).$refs[this.refName][0].offsetLeft -
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) +
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) -
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "n-resize") {
+      this.controlData[this.trackinIndex].top =
+        (this as any).$refs[this.refName][0].offsetTop -
+        this.positions.movementY +
+        "px";
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) +
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "s-resize") {
+      this.controlData[this.trackinIndex].height =
+        parseInt(this.controlData[this.trackinIndex].height) -
+        this.positions.movementY +
+        "px";
+    } else if (this.resizeDiv === "w-resize") {
+      this.controlData[this.trackinIndex].left =
+        (this as any).$refs[this.refName][0].offsetLeft -
+        this.positions.movementX +
+        "px";
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) +
+        this.positions.movementX +
+        "px";
+    } else if (this.resizeDiv === "e-resize") {
+      this.controlData[this.trackinIndex].width =
+        parseInt(this.controlData[this.trackinIndex].width) -
+        this.positions.movementX +
+        "px";
+    }
+  }
+  closeDragElement(): void {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+</script>
+<style scoped>
+.mainDiv {
+  position: absolute;
+  --border-width: 5;
+  --stripe-distance: 2px;
+  border: calc(var(--border-width) * 1px) solid transparent;
+  border-image: repeating-linear-gradient(
+      -45deg,
+      black,
+      transparent 2px,
+      transparent var(--stripe-distance),
+      black calc(var(--stripe-distance) + 0.2px)
+    )
+    var(--border-width);
+}
+.mainDiv1 {
+  position: absolute;
+}
+
+.handle {
+  box-sizing: border-box;
+  position: absolute;
+  width: 6px;
+  height: 6px;
+
+  background: white;
+  border: 1px solid #333;
+}
+.handle-tl {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+.handle-tm {
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: n-resize;
+}
+.handle-tr {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+.handle-ml {
+  top: 50%;
+  margin-top: -5px;
+  left: -5px;
+  cursor: w-resize;
+}
+.handle-mr {
+  top: 50%;
+  margin-top: -5px;
+  right: -5px;
+  cursor: e-resize;
+}
+.handle-bl {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+.handle-bm {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: s-resize;
+}
+.handle-br {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+.label-style {
+  float: left;
+  overflow: hidden;
+  background-color: lightgrey;
+}
+</style>
