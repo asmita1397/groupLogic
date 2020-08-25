@@ -169,13 +169,13 @@ if (this.resizeDiv === "s-resize") {
           /*  console.log(this.topArray[i],i) */
           if (this.resizeDiv === "s-resize") {
           
-          const diff=(parseInt(this.initialArray.height)/( parseInt(this.initialArray.height)-  parseInt(dragResizeControl.height))/100 )
+        /*   const diff=(parseInt(this.initialArray.height)/( parseInt(this.initialArray.height)-  parseInt(dragResizeControl.height))/100 )
           console.log(parseInt(dragResizeControl1.height)-(diff*parseInt(dragResizeControl1.height))+"px")
           dragResizeControl1.height =parseInt(dragResizeControl1.height)-(diff*parseInt(dragResizeControl1.height))+"px"
                
             dragResizeControl1.top =
               (parseInt(dragResizeControl.height) * this.topArray[i]) /parseInt(this.initialArray.height) +parseInt(this.initialArray.top)+
-              "px";
+              "px"; */
           }
         }
       }

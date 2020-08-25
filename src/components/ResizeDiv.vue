@@ -1,22 +1,32 @@
 <template>
-  <div >
-    <button @click="groupControl"> Group</button>
+  <div>
+    <button @click="groupControl">Group</button>
     <div v-for="(control,index) in controlData" :key="index">
       <div
         :class="[control.isActivate?'mainDiv':'mainDiv1']"
         :style="{width:control.width,  height: control.height, left:control.left,top: control.top}"
         :ref="control.id"
-        @mousedown.stop="control.isActivate?handleDrag($event,index,control.id):null"
+        @mousedown.stop="handleDrag($event,control)"
       >
-         <resize-handlers :controlData="controlData" :index="index"  :refOfResizeDiv="$refs" :refName="control.id"/>
-        <label class="label-style" :style="control" for @click.self="labelClick(index,control.id)">{{control.id}}</label>
+        <resize-handlers
+          :controlData="controlData"
+          :index="index"
+          :refOfResizeDiv="$refs"
+          :refName="control.id"
+        />
+        <label
+          class="label-style"
+          :style="control"
+          @click.self="labelClick(index,control)"
+          @dblclick="labelActivate(index,control)"
+        >{{control.id}}</label>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Prop } from "vue-property-decorator";
 import ResizeHandlers from "./ResizeHandlers.vue";
 import { EventBus } from "./event-bus";
 @Component({
@@ -25,6 +35,7 @@ import { EventBus } from "./event-bus";
   }
 })
 export default class ResizeDiv extends Vue {
+  groupArray: any = [];
   positions: any = {
     clientX: "",
     clientY: "",
@@ -37,68 +48,99 @@ export default class ResizeDiv extends Vue {
       height: "100px",
       left: "100px",
       top: "50px",
-      isActivate:false,
-      id:"Label1",
-      group:''
-    
+      isActivate: false,
+      id: "Label1",
+      group: ""
     },
     {
       width: "120px",
       height: "100px",
       left: "120px",
       top: "250px",
-      isActivate:false,
-       id:"Label2",
-       group:''
-
+      isActivate: false,
+      id: "Label2",
+      group: ""
     },
     {
       width: "200px",
       height: "300px",
       left: "500px",
       top: "10px",
-      isActivate:true,
-       id:"Label3",
-       group:''
+      isActivate: false,
+      id: "Label3",
+      group: ""
+    },
+    {
+      width: "100px",
+      height: "100px",
+      left: "300px",
+      top: "300px",
+      isActivate: false,
+      id: "Label4",
+      group: ""
     }
   ];
 
   resizeDiv = "";
-  refName = "maindivRef";
+  refName = "";
   isActivate = false;
   trackinIndex = -1;
-  
 
-
-  labelClick(control: any,controlId: any) {
+  labelClick(controlIndex: any, control: any) {
      
-     EventBus.$emit("curActControl",controlId)
-     this.trackinIndex = control;
-    this.controlData[this.trackinIndex].isActivate = !this.controlData[this.trackinIndex].isActivate;
+     
+    if (control.group === "") {
+      if (control.isActivate === true) {
+        EventBus.$emit("curActControl", control);
+      }
+      this.trackinIndex = controlIndex;
+      this.controlData[this.trackinIndex].isActivate = !this.controlData[
+        this.trackinIndex
+      ].isActivate;
+    }
   }
 
-  handleDrag(event: any)
-  {
+  handleDrag(event: any, control: any) {
+    console.log(control)
+    if (control.group !== "" && control.isActivate === false) {
     
-     EventBus.$emit('drag',event,this.$refs)
+      EventBus.$emit("dragGroup", event,control);
+    } else {
+      EventBus.$emit("drag", event);
+    }
+  }
+
+  groupControl() {
+    const groupName = `group${this.groupArray.length + 1}`;
+    this.groupArray.push(groupName);
+
     
+    for (const controlKey in this.controlData) {
+      if (this.controlData[controlKey].isActivate === true) {
+        this.controlData[controlKey].group = groupName;
+      }
+      this.controlData[controlKey].isActivate = false;
+    }
+    EventBus.$emit("createdGroup", this.groupArray, this.controlData, this.$refs);
   }
- 
-  groupControl()
-  {
-     for (const controlKey in this.controlData) {
-           if(this.controlData[controlKey].isActivate===true)
-           {
-               this.controlData[controlKey].group='group1'
-           }  
-     }          
-    console.log(this.controlData)
-        EventBus.$emit('createGroup')
+
+  mounted() {
+    EventBus.$emit("group-control", this.controlData, this.$refs);
   }
- 
-  mounted()
-  {
-      EventBus.$emit('group-control',this.controlData,this.$refs)
+  labelActivate(controlIndex: any, control: any) {
+    if (control.group !== "") {
+      EventBus.$emit("curActControl", control);
+
+      for (const controlKey in this.controlData) {
+        if (control.id !== this.controlData[controlKey].id) {
+          this.controlData[controlKey].isActivate = false;
+        }
+      }
+      this.trackinIndex = controlIndex;
+      this.controlData[this.trackinIndex].isActivate = !this.controlData[
+        this.trackinIndex
+      ].isActivate;
+    }
   }
 }
 </script>

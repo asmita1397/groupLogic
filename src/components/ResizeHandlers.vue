@@ -5,64 +5,64 @@
       :class="[controlData[index].isActivate?'handle handle-tl':null]"
       @mousedown.stop="handleMouseDown($event,'nw',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-tr':null]"
       @mousedown.stop="handleMouseDown($event,'ne',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-tm':null]"
       @mousedown.stop="handleMouseDown($event,'n-resize',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-ml':null]"
       @mousedown.stop="handleMouseDown($event,'w-resize',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-mr':null]"
       @mousedown.stop="handleMouseDown($event,'e-resize',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-bl':null]"
       @mousedown.stop="handleMouseDown($event,'sw',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-br':null]"
       @mousedown.stop="handleMouseDown($event,'se',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
     <div
       :class="[controlData[index].isActivate?'handle handle-bm':null]"
       @mousedown.stop="handleMouseDown($event,'s-resize',index)"
       :style="{
-          backgroundColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'white':'black',
-          borderColor:activatedControl===controlData[index].id && controlData[index].isActivate ?'black':'white'
+          backgroundColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'white':'black',
+          borderColor:activatedControl.id===controlData[index].id && controlData[index].isActivate ?'black':'white'
       }"
     ></div>
   </div>
@@ -85,28 +85,22 @@ export default class ResizeDiv extends Vue {
   @Prop() controlData!: any;
   @Prop() index!: any;
   @Prop() refOfResizeDiv!: any;
-  activatedControl = "";
+  activatedControl: any = {};
   refName = "";
   resizeDiv = "";
   selectedControls: any = [];
-  groupData={}
-  refOfGRoup=""
+  
+ 
   mounted() {
-    console.log("entered")
-    EventBus.$on("drag", (event: any,ref: any) => {
-      this.refOfResizeDiv = ref;
+    /* console.log("entered") */
+    EventBus.$on("drag", (event: any) => {
       this.handleMouseDown(event, "drag");
     });
-    EventBus.$on("curActControl", (controlId: any) => {
-      this.activatedControl = controlId;
-    });
+    EventBus.$on("curActControl", (control: any) => {
 
-     EventBus.$on("dataRef",(groupData: any,refOfGRoup: any)=>
-     {
-         
-          this.groupData=groupData
-          this.refOfGRoup=refOfGRoup
-     })
+      this.activatedControl = control;
+    });
+     
      
   }
 
@@ -117,7 +111,7 @@ export default class ResizeDiv extends Vue {
     this.positions.clientX = event.clientX;
     this.positions.clientY = event.clientY;
     for (let i = 0; i < this.controlData.length; i++) {
-      if (this.controlData[i].group === 'group1') {
+      if (this.controlData[i].isActivate === true) {
         this.selectedControls = [...this.selectedControls, this.controlData[i]];
       }
     }
@@ -131,7 +125,7 @@ export default class ResizeDiv extends Vue {
     this.positions.movementY = this.positions.clientY - event.clientY;
     this.positions.clientX = event.clientX;
     this.positions.clientY = event.clientY;
-    /* console.log("resize the view", this.refOfResizeDiv); */
+   
     for (let i = 0; i < this.controlData.length; i++) {
       for (let j = 0; j < this.selectedControls.length; j++) {
         if (this.controlData[i].id === this.selectedControls[j].id) {
@@ -211,12 +205,8 @@ export default class ResizeDiv extends Vue {
               dragResizeRef.offsetTop - this.positions.movementY + "px";
             dragResizeControl.left =
               dragResizeRef.offsetLeft - this.positions.movementX + "px";
-              EventBus.$emit('dragGroup')
-              if(Object.keys(this.groupData).length!==0)
-              {
-                 this.groupData.top=this.refOfGRoup["maindivRef"].offsetTop - this.positions.movementY + "px";
-                 this.groupData.left =this.refOfGRoup["maindivRef"].offsetLeft - this.positions.movementX + "px";
-              }
+        
+              
           }
         }
       }
@@ -225,6 +215,11 @@ export default class ResizeDiv extends Vue {
   closeDragElement(): void {
     document.onmouseup = null;
     document.onmousemove = null;
+    if(Object.keys(this.activatedControl).length!==0 && this.activatedControl.group!=="")
+    {
+      EventBus.$emit('createBoundary')
+    }
+
   }
 }
 </script>
