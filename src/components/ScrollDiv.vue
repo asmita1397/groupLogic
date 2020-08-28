@@ -3,8 +3,12 @@
     class="mainDiv"
     :style="divStyle"
     :ref="groupName"
-    @mousedown.stop="handleMouseDown($event,'drag')"
+    :id="groupName"
+    @mousedown.stop
+    @dblclick="handleDisplay"
+    @mousedown="handleMouseDown($event,'drag')" 
   >
+  
     <div class="handle handle-tl" @mousedown.stop="handleMouseDown($event,'nw')"></div>
     <div class="handle handle-tr" @mousedown.stop="handleMouseDown($event,'ne')"></div>
     <div class="handle handle-tm" @mousedown.stop="handleMouseDown($event,'n-resize')"></div>
@@ -27,7 +31,7 @@ export default class ScrollDiv extends Vue {
   @Prop() groupName: any;
   @Prop() controlData: any;
   @Prop() refOfResizeDiv: any;
-  @Prop() refName: any;
+
   positions: any = {
     clientX: "",
     clientY: "",
@@ -42,7 +46,7 @@ export default class ScrollDiv extends Vue {
     display: "none"
   };
   initialArray: any = {};
-
+  eventName =""
   topArray: any = [];
   leftArray: any = [];
   rightArray: any = [];
@@ -53,28 +57,39 @@ export default class ScrollDiv extends Vue {
 
   resizeDiv = "";
   selectedControls: any = [];
-   refOfGroup=""
-  /*  controlData: any = []; */
- 
+  refOfGroup = "";
 
   mounted() {
- this.createGroupBoundary();
-console.log("mounted")
-    
-   
- 
-    EventBus.$on('dragGroup', (event: any,control: any) => {
-     if(control.group === this.groupName)
-     {
-             this.handleMouseDown(event, "drag");
-             this.refOfGroup=control.group
-     }
-       
+    this.createGroupBoundary();
+    // console.log("mounted");
+
+    EventBus.$on("dragGroup", (event: any, control: any) => {
+      if (control.group === this.groupName) {
+        this.handleMouseDown(event, "drag");
+        this.refOfGroup = control.group;
+      }
     });
-     EventBus.$on('createBoundary',()=>
-     {
-          this.createGroupBoundary()    
-     })
+    EventBus.$on("dragMutipleControl", (event: any, groupName: any) => {
+      this.groupName = groupName;
+       this.eventName = "dragMutipleControl"
+      this.handleMouseDown(event, "drag");
+    
+    });
+
+    EventBus.$on("createBoundary", () => {
+      this.createGroupBoundary();
+    });
+    EventBus.$on("dragSelectGroup", (groupName: any) => {
+       if(this.groupName === groupName)
+       {
+            this.divStyle.display="block"
+       }
+    });
+  }
+
+  handleDisplay() {
+    // console.log("display");
+    this.divStyle.display = "none";
   }
 
   createGroupBoundary() {
@@ -113,13 +128,13 @@ console.log("mounted")
     }
     this.divStyle = {
       ...this.divStyle,
-      left: `${Math.min(...styleLeft)-10}px`,
-      top: `${Math.min(...styleTop)-10}px`,
+      left: `${Math.min(...styleLeft) - 10}px`,
+      top: `${Math.min(...styleTop) - 10}px`,
       width: `${Math.max(...styleWidth) - Math.min(...styleLeft) + 10}px`,
-      height: ` ${Math.max(...styleHeight) - Math.min(...styleTop)+ 10}px`,
+      height: ` ${Math.max(...styleHeight) - Math.min(...styleTop) + 10}px`,
       display: "block"
     };
-   /*  console.log(this.divStyle); */
+    /*  console.log(this.divStyle); */
 
     for (let i = 0; i < this.controlData.length; i++) {
       this.topArray.push(
@@ -152,9 +167,9 @@ console.log("mounted")
   }
 
   handleMouseDown(event: any, handler: string) {
-    this.selectedControls = [];
 
-console.log(this.refName)
+    this.selectedControls=[]
+    console.log("hhhhhhhhhhh")
     this.resizeDiv = handler;
     this.positions.clientX = event.clientX;
     this.positions.clientY = event.clientY;
@@ -162,6 +177,113 @@ console.log(this.refName)
     document.onmouseup = this.closeDragElement;
   }
 
+  controlDragResize(
+    i: number,
+    dragResizeControl1: any,
+    dragResizeControl: any,
+    dragResizeRef1: any
+  ) {
+    if (this.resizeDiv === "s-resize") {
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.topArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(this.initialArray.top) +
+        "px";
+
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+    } else if (this.resizeDiv === "e-resize") {
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.leftArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(this.initialArray.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+    } else if (this.resizeDiv === "se") {
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.topArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(this.initialArray.top) +
+        "px";
+
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.leftArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(this.initialArray.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+    } else if (this.resizeDiv === "n-resize") {
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(dragResizeControl.top) +
+        "px";
+    } else if (this.resizeDiv === "w-resize") {
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.rightArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(dragResizeControl.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+    } else if (this.resizeDiv === "sw") {
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.rightArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(dragResizeControl.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.topArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(this.initialArray.top) +
+        "px";
+    } else if (this.resizeDiv === "ne") {
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(dragResizeControl.top) +
+        "px";
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.leftArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(this.initialArray.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+    } else if (this.resizeDiv === "nw") {
+      dragResizeControl1.top =
+        (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
+          parseInt(this.initialArray.height) +
+        parseInt(dragResizeControl.top) +
+        "px";
+      dragResizeControl1.left =
+        (parseInt(dragResizeControl.width) * this.rightArray[i]) /
+          parseInt(this.initialArray.width) +
+        parseInt(dragResizeControl.left) +
+        "px";
+      dragResizeControl1.width =
+        parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
+      dragResizeControl1.height =
+        parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
+    } else if (this.resizeDiv === "drag") {
+      dragResizeControl1.top =
+        dragResizeRef1.offsetTop - this.positions.movementY + "px";
+      dragResizeControl1.left =
+        dragResizeRef1.offsetLeft - this.positions.movementX + "px";
+    }
+  }
   elementDrag(event: any): void {
     event.preventDefault();
 
@@ -172,11 +294,11 @@ console.log(this.refName)
 
     let dragResizeControl: any = [];
     let dragResizeControl1: any = [];
-    console.log(this.$refs)
-    const dragResizeRef = (this as any).$refs[this.groupName];
 
+    const dragResizeRef = (this as any).$refs[this.groupName];
+    /*   console.log(dragResizeRef) */
     dragResizeControl = this.divStyle;
-    console.log(this.refName)
+
     if (this.resizeDiv === "s-resize") {
       dragResizeControl.height =
         parseInt(dragResizeControl.height) - this.positions.movementY + "px";
@@ -229,113 +351,25 @@ console.log(this.refName)
     }
 
     for (let i = 0; i < this.controlData.length; i++) {
-      if (this.controlData[i].group === this.refOfGroup) {
-        const dragResizeRef1 = (this as any).refOfResizeDiv[
-          this.controlData[i].id
-        ][0];
-        dragResizeControl1 = this.controlData[i];
-
-        if (this.resizeDiv === "s-resize") {
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.topArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(this.initialArray.top) +
-            "px";
-         
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-        } else if (this.resizeDiv === "e-resize") {
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.leftArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(this.initialArray.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-        } else if (this.resizeDiv === "se") {
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.topArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(this.initialArray.top) +
-            "px";
-
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.leftArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(this.initialArray.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-        } else if (this.resizeDiv === "n-resize") {
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(dragResizeControl.top) +
-            "px";
-        
-        } else if (this.resizeDiv === "w-resize") {
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.rightArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(dragResizeControl.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-        } else if (this.resizeDiv === "sw") {
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.rightArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(dragResizeControl.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.topArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(this.initialArray.top) +
-            "px";
-        } else if (this.resizeDiv === "ne") {
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(dragResizeControl.top) +
-            "px";
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.leftArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(this.initialArray.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-        } else if (this.resizeDiv === "nw") {
-          dragResizeControl1.top =
-            (parseInt(dragResizeControl.height) * this.bottomArray[i]) /
-              parseInt(this.initialArray.height) +
-            parseInt(dragResizeControl.top) +
-            "px";
-          dragResizeControl1.left =
-            (parseInt(dragResizeControl.width) * this.rightArray[i]) /
-              parseInt(this.initialArray.width) +
-            parseInt(dragResizeControl.left) +
-            "px";
-          dragResizeControl1.width =
-            parseInt(dragResizeControl.width) * this.percwidthArray[i] + "px";
-          dragResizeControl1.height =
-            parseInt(dragResizeControl.height) * this.percheightArray[i] + "px";
-        } else if (this.resizeDiv === "drag") {
-          dragResizeControl1.top =
-              dragResizeRef1.offsetTop - this.positions.movementY + "px";
-            dragResizeControl1.left =
-              dragResizeRef1.offsetLeft - this.positions.movementX + "px";
-        }
+      const dragResizeRef1 = (this as any).refOfResizeDiv[
+        this.controlData[i].id
+      ][0];
+      dragResizeControl1 = this.controlData[i];
+      if (this.controlData[i].group === this.groupName) {
+        this.controlDragResize(
+          i,
+          dragResizeControl1,
+          dragResizeControl,
+          dragResizeRef1
+        );
+      }
+      if (this.controlData[i].isActivate === true && this.eventName=="dragMutipleControl") {
+        this.controlDragResize(
+          i,
+          dragResizeControl1,
+          dragResizeControl,
+          dragResizeRef1
+        );
       }
     }
   }
